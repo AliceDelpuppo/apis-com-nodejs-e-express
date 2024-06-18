@@ -1,55 +1,65 @@
 import { Request, Response } from 'express'
-import { listaAutorBanco } from '../models/autor'
+import ErroBase from '../erros/ErroBase'
+import { autoresBanco } from '../models'
 
-export async function getAutores(request: Request, response: Response) {
+export async function getAutores(request: Request, response: Response, next: any) {
 	try {
-		const autores = await listaAutorBanco.find({})
+		const autores = await autoresBanco.find({})
 		response.status(200).json(autores)
 	} catch (error) {
-		response.status(500).json({ message: `${error} - falha requisição` })
-		response.send(error)
+		next(error)
 	}
 }
 
-export async function getAutorById(request: Request, response: Response) {
+export async function getAutorById(request: Request, response: Response, next: any) {
 	try {
 		const id = request.params.id
-		const autor = await listaAutorBanco.findById(id)
-		response.status(200).json(autor)
+		const autor = await autoresBanco.findById(id)
+		if (autor) {
+			response.status(200).json(autor)
+		} else {
+			ErroBase.enviarResposta({ message: 'ID do autor não localizado', status: 404, response })
+		}
 	} catch (error) {
-		response.status(500).json({ message: `${error} - falha requisição do autor` })
-		response.send(error)
+		next(error)
 	}
 }
 
-export async function cadastrarAutor(request: Request, response: Response) {
+export async function cadastrarAutor(request: Request, response: Response, next: any) {
 	try {
-		const newAutor = await listaAutorBanco.create(request.body)
+		const newAutor = await autoresBanco.create(request.body)
 		response.status(201).json({ message: 'Criado com sucesso', autor: newAutor })
 	} catch (error) {
-		response.status(500).json({ message: `${error} - falha ao cadastrar autor` })
-		response.send(error)
+		next(error)
 	}
 }
 
-export async function atualizarAutor(request: Request, response: Response) {
+export async function atualizarAutor(request: Request, response: Response, next: any) {
 	try {
 		const id = request.params.id
-		await listaAutorBanco.findByIdAndUpdate(id, request.body)
-		response.status(200).json({ message: 'Autor atualizado com sucesso' })
+		const autorResult = await autoresBanco.findByIdAndUpdate(id, request.body)
+
+		if (autorResult !== null) {
+			response.status(200).json({ message: 'Autor atualizado com sucesso' })
+		} else {
+			ErroBase.enviarResposta({ message: 'ID do autor não localizado', status: 404, response })
+		}
 	} catch (error) {
-		response.status(500).json({ message: `${error} - falha na atualização do autor` })
-		response.send(error)
+		next(error)
 	}
 }
 
-export async function deletarAutor(request: Request, response: Response) {
+export async function deletarAutor(request: Request, response: Response, next: any) {
 	try {
 		const id = request.params.id
-		await listaAutorBanco.findByIdAndDelete(id)
-		response.status(200).json({ message: 'Autor excluído com sucesso' })
+		const autorResult = await autoresBanco.findByIdAndDelete(id)
+
+		if (autorResult !== null) {
+			response.status(200).json({ message: 'Autor excluído com sucesso' })
+		} else {
+			ErroBase.enviarResposta({ message: 'ID do autor não localizado', status: 404, response })
+		}
 	} catch (error) {
-		response.status(500).json({ message: `${error} - falha na exclusão do autor` })
-		response.send(error)
+		next(error)
 	}
 }

@@ -9,6 +9,6 @@ const autorSchema = new mongoose.Schema(
 	{ versionKey: false }
 )
 
-const listaAutorBanco = mongoose.model('autores', autorSchema)
+const autoresBanco = mongoose.model('autores', autorSchema)
 
-export { listaAutorBanco, autorSchema }
+export { autoresBanco, autorSchema }

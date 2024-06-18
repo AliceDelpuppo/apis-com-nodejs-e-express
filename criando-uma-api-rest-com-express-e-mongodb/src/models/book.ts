@@ -13,6 +13,6 @@ const bookSchema = new mongoose.Schema(
 	{ versionKey: false }
 )
 
-const listaLivrosBanco = mongoose.model('livros', bookSchema)
+const livrosBanco = mongoose.model('livros', bookSchema)
 
-export default listaLivrosBanco
+export default livrosBanco
