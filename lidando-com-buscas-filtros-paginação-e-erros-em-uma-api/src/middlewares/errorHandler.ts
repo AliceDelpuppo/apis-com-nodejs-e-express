@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 
 import { Request, Response } from 'express'
 import ErroBase from '../erros/ErroBase'
-import RequisicaoIncorreta from '../erros/RequisicaoIncorreta'
 import Validacao from '../erros/Validacao'
 import NaoEncontrado from '../erros/NaoEncontrado'
 

@@ -5,13 +5,13 @@ import {
 	deletarBook,
 	getBookById,
 	getBooks,
-	listarLivrosPorEditora,
+	listarLivrosPorFiltro,
 } from '../controllers/book'
 
 const routerBooks = Router()
 
 routerBooks.get('/livros', getBooks)
-routerBooks.get('/livros/busca', listarLivrosPorEditora)
+routerBooks.get('/livros/busca', listarLivrosPorFiltro)
 routerBooks.get('/livros/:id', getBookById)
 routerBooks.post('/livros', cadastrarBook)
 routerBooks.put('/livros/:id', atualizarBook)

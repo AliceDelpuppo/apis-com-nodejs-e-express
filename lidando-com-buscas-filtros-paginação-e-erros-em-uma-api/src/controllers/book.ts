@@ -1,12 +1,32 @@
 import { Request, Response } from 'express'
 import ErroBase from '../erros/ErroBase'
-import { livrosBanco } from '../models'
+import { autoresBanco, livrosBanco } from '../models'
 
 export async function getBooks(request: Request, response: Response, next: any) {
 	try {
 		// throw new Error()
-		const books = await livrosBanco.find({})
-		response.status(200).json(books)
+
+		let { limite = 5, pagina = 1, ordenacao = 'title:1' } = request.query
+
+		console.log('query', request.query)
+
+		limite = parseInt(String(limite))
+		pagina = parseInt(String(pagina))
+		// ordem = parseInt(String(ordem))
+
+		const [campoOrdenacao, ordem] = String(ordenacao).split(':')
+
+		if (limite > 0 && pagina > 0) {
+			const books = await livrosBanco
+				.find({})
+				.sort({ [campoOrdenacao]: 1 })
+				.skip((pagina - 1) * limite)
+				.limit(limite)
+			// .populate('autor')
+			response.status(200).json(books)
+		} else {
+			ErroBase.enviarResposta({ message: 'Um ou mais dados fornecidos estão incorretos', status: 400, response })
+		}
 	} catch (error) {
 		next(error)
 	}
@@ -60,12 +80,46 @@ export async function deletarBook(request: Request, response: Response, next: an
 	}
 }
 
-export async function listarLivrosPorEditora(request: Request, response: Response, next: any) {
-	const editoraReq = request.query.editora
+export async function listarLivrosPorFiltro(request: Request, response: Response, next: any) {
+	interface BuscaProps {
+		editora?: unknown
+		titulo?: unknown
+		pages?: {
+			$gte?: unknown
+			$lte?: unknown
+		}
+		autor?: unknown
+	}
 
 	try {
-		const livrosPorEditora = await livrosBanco.find({ editora: editoraReq })
-		response.status(200).json(livrosPorEditora)
+		const { editora, titulo, nomeAutor, minPaginas, maxPaginas } = request.query
+
+		let busca: BuscaProps | null = {}
+
+		if (editora) busca.editora = { $regex: editora, $options: 'i' }
+		if (titulo) busca.titulo = { $regex: titulo, $options: 'i' }
+		if (minPaginas || maxPaginas) {
+			busca.pages = {}
+			if (minPaginas) busca.pages.$gte = minPaginas
+			if (maxPaginas) busca.pages.$lte = maxPaginas
+		}
+		if (nomeAutor) {
+			const autor = await autoresBanco.findOne({ name: nomeAutor })
+
+			if (autor !== null) {
+				busca.autor = autor?._id
+			} else {
+				busca = null
+			}
+		}
+
+		if (busca !== null) {
+			const livrosPorEditora = await livrosBanco.find(busca)
+			// .populate('autor')
+			response.status(200).json(livrosPorEditora)
+		} else {
+			response.status(200).send([])
+		}
 	} catch (error) {
 		next(error)
 	}
